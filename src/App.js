@@ -3,16 +3,13 @@ import React from "react";
 import * as cocoSsd from "@tensorflow-models/coco-ssd";
 import "@tensorflow/tfjs";
 import "./App.css";
-
+import Speech from 'speak-tts';
 
 
 export default class App extends React.Component {
   videoRef = React.createRef();
   canvasRef = React.createRef();
-  styles = {
-    position:'fixed',
-    align:'center',
-  }
+  
 
   componentDidMount() {
     if (navigator.mediaDevices.getUserMedia) {
@@ -59,6 +56,18 @@ export default class App extends React.Component {
   };
 
   showDetections = predictions => {
+    const speech = new Speech();
+    speech.init({
+      'volume': 1,
+      'lang': 'es-MX',
+      'rate': 1,
+      'pitch': 1,
+      'listeners': {
+        'onvoiceschanged': (voices) => {
+            console.log("Event voiceschanged", voices)
+        }
+    }
+    });
     const ctx = this.canvasRef.current.getContext("2d");
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     const font = "24px helvetica";
@@ -86,14 +95,24 @@ export default class App extends React.Component {
       ctx.fillStyle = "#000000";
       ctx.fillText(prediction.class, x, y);
       ctx.fillText(prediction.score.toFixed(2), x, y + height - textHeight);
+      if(!speech.speaking()){
+        speech.speak({
+          text: "El objeto es " + prediction.class,
+        }).then(() => {
+            console.log("Success !");
+        }).catch(e => {
+            console.error("An error occurred :", e);
+        })
+      }
     });
   };
 
   render() {
-    return (
+    return (      
       <div> 
-        <video id = "styles" autoPlay muted ref={this.videoRef} width ="720" height = "600"/>
-        <canvas id = "styles" ref={this.canvasRef} width ="720" height = "650"/>
+        <video className = "styles" autoPlay muted ref={this.videoRef} />
+        <canvas className = "styles" ref={this.canvasRef} height="650" width= "720"/>
+        
       </div>
     );
   }
