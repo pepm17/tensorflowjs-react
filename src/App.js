@@ -1,6 +1,4 @@
 import React from "react";
-
-import * as cocoSsd from "@tensorflow-models/coco-ssd";
 import "@tensorflow/tfjs";
 import "./App.css";
 import Speech from 'speak-tts';
