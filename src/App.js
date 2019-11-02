@@ -7,8 +7,7 @@ import { camera, video } from './component/camera';
 
 export default class App extends React.Component {
   videoRef = video();
-  canvasRef = React.createRef();
-  
+  canvasRef = React.createRef();  
 
   componentDidMount() {
     if (navigator.mediaDevices.getUserMedia) {      
