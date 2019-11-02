@@ -1,9 +1,9 @@
 import * as cocoSsd from "@tensorflow-models/coco-ssd";
 
-export async function model() {
+export async function coco() {
     // Promesa que carga el modelo
-    const loadlModelPromise = cocoSsd.load({base: "mobilenet_v2"});
-    return loadlModelPromise;
+    const loadCoco = cocoSsd.load({base: "mobilenet_v2"});
+    return loadCoco;
 }
 
-export default model;
+export default coco;
