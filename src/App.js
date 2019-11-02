@@ -1,33 +1,18 @@
 import React from "react";
 import "@tensorflow/tfjs";
 import "./App.css";
-import Speech from 'speak-tts';
+import { voice } from './component/voice';
 import { coco } from './component/model';
+import { camera, video } from './component/camera';
 
 export default class App extends React.Component {
-  videoRef = React.createRef();
+  videoRef = video();
   canvasRef = React.createRef();
   
 
   componentDidMount() {
     if (navigator.mediaDevices.getUserMedia) {      
-      const cam = navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: false,
-      }).then(stream => {
-          // Pasar el actual frame a window.stream
-          window.stream = stream;
-          // Pasar el stream a videoRef
-          this.videoRef.current.srcObject = stream;
-          return new Promise(resolve => {
-            this.videoRef.current.onloadedmetadata = () => {
-              resolve();
-            };
-          });
-      }, (error) => {
-          console.log("No se pudo iniciar la camara")
-          console.error(error)
-      });    
+      const cam = camera();
       const model = coco();
       // Todas las promesas
       Promise.all([model, cam]).then(values => {
@@ -51,18 +36,7 @@ export default class App extends React.Component {
   };
 
   showDetections = predictions => {
-    const speech = new Speech();
-    speech.init({
-      'volume': 1,
-      'lang': 'es-MX',
-      'rate': 1,
-      'pitch': 1,
-      'listeners': {
-        'onvoiceschanged': (voices) => {
-            console.log("Event voiceschanged", voices)
-        }
-    }
-    });
+    const speech = voice();
     const ctx = this.canvasRef.current.getContext("2d");
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     const font = "24px helvetica";
