@@ -1,41 +1,20 @@
 import React from "react";
-
-import * as cocoSsd from "@tensorflow-models/coco-ssd";
 import "@tensorflow/tfjs";
 import "./App.css";
-import Speech from 'speak-tts';
-
+import { voice } from './component/voice';
+import { coco } from './component/model';
+import { camera, video } from './component/camera';
 
 export default class App extends React.Component {
-  videoRef = React.createRef();
-  canvasRef = React.createRef();
-  
+  videoRef = video();
+  canvasRef = React.createRef();  
 
   componentDidMount() {
-    if (navigator.mediaDevices.getUserMedia) {
-      //Define una promesa que será usada para cargar la camara y leer los frame
-      const webcamPromise = navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: false,
-        }).then(stream => {
-            // Pasar el actual frame a window.stream
-            window.stream = stream;
-            // Pasar el stream a videoRef
-            this.videoRef.current.srcObject = stream;
-            return new Promise(resolve => {
-              this.videoRef.current.onloadedmetadata = () => {
-                resolve();
-              };
-            });
-        }, (error) => {
-            console.log("No se pudo iniciar la camara")
-            console.error(error)
-        });
-
-      // Define una promesa que pueda cargar el modelo
-      const loadlModelPromise = cocoSsd.load({base: "mobilenet_v2"});      
+    if (navigator.mediaDevices.getUserMedia) {      
+      const cam = camera();
+      const model = coco();
       // Todas las promesas
-      Promise.all([loadlModelPromise, webcamPromise]).then(values => {
+      Promise.all([model, cam]).then(values => {
           this.detectFromVideoFrame(values[0], this.videoRef.current);
         }).catch(error => {
           console.error(error);
@@ -56,18 +35,7 @@ export default class App extends React.Component {
   };
 
   showDetections = predictions => {
-    const speech = new Speech();
-    speech.init({
-      'volume': 1,
-      'lang': 'es-MX',
-      'rate': 1,
-      'pitch': 1,
-      'listeners': {
-        'onvoiceschanged': (voices) => {
-            console.log("Event voiceschanged", voices)
-        }
-    }
-    });
+    const speech = voice();
     const ctx = this.canvasRef.current.getContext("2d");
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     const font = "24px helvetica";
