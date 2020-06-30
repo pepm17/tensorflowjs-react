@@ -6,12 +6,7 @@ export function voice() {
         'volume': 1,
         'lang': 'es-MX',
         'rate': 1,
-        'pitch': 1,
-        'listeners': {
-            'onvoiceschanged': (voices) => {
-                console.log("Event voiceschanged", voices)
-            }
-        }
+        'pitch': 1
     });
     return speech;
 }
