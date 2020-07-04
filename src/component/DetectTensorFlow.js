@@ -3,12 +3,30 @@ import "@tensorflow/tfjs";
 import { voice } from './voice';
 import { coco } from './model';
 import { camera, video } from './camera';
+import {
+  Navbar,
+  Form,
+  FormControl,
+  Nav
+} from 'react-bootstrap'
 
 class DetectTensorFlow extends React.Component {
+
+  constructor(props) {
+    super(props);
+    this.inputRef = React.createRef();
+    this.state = {
+      object: '',
+      prediction: ''
+    }
+
+  }
   videoRef = video();
   canvasRef = React.createRef();  
+  _input = HTMLInputElement;
 
   componentDidMount() {
+    this.focusInput();
     if (navigator.mediaDevices.getUserMedia) {      
       const cam = camera();
       const model = coco();
@@ -19,6 +37,10 @@ class DetectTensorFlow extends React.Component {
           console.error(error);
         });
     }
+  }
+
+  focusInput = () =>{
+    this.inputRef.current.focus();
   }
 
   detectFromVideoFrame = (model, video) => {
@@ -62,21 +84,49 @@ class DetectTensorFlow extends React.Component {
       ctx.fillStyle = "#000000";
       ctx.fillText(prediction.class, x, y);
       ctx.fillText(prediction.score.toFixed(2), x, y + height - textHeight);
-      if(!speech.speaking()){
-        speech.speak({
-          text: "El objeto es " + prediction.class,
-        }).then(() => {
-            console.log("Success !");
-        }).catch(e => {
-            console.error("An error occurred :", e);
-        })
+      this.setState({prediction: prediction.class})
+      if(this.state.prediction.includes(this.state.object)){
+        if(!speech.speaking()){
+          speech.speak({
+            text: "El objeto es " + prediction.class,
+          }).then(() => {
+              console.log("Success !");
+          }).catch(e => {
+              console.error("An error occurred :", e);
+          })
+        }
+      }
+      else if(!this.state.object){
+        if(!speech.speaking()){
+          speech.speak({
+            text: "El objeto es " + prediction.class,
+          }).then(() => {
+              console.log("Success !");
+          }).catch(e => {
+              console.error("An error occurred :", e);
+          })
+        }
       }
     });
   };
 
+  handleChange = (e) =>{
+    this.setState({[e.target.name]: e.target.value});
+}
+
   render() {
     return (      
-      <div>  
+      <div>
+        <Navbar variant="dark" className="navBar">
+            <Nav className="mr-auto">
+                <Navbar.Brand href="#home">Guiding Tech Dog</Navbar.Brand>
+            </Nav>
+            <Form inline>
+                <FormControl type="text" placeholder="Buscar Objeto" className="mr-sm-2 right"
+                onBlur={this.focusInput} autoFocus={true} ref={this.inputRef}
+                value={this.state.object} onChange={this.handleChange} name="object" />
+            </Form>
+        </Navbar>  
         <video className = "styles" autoPlay muted ref={this.videoRef} />
         <canvas className = "styles" ref={this.canvasRef} height="650" width= "720"/>        
       </div>
