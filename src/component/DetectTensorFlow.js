@@ -3,6 +3,7 @@ import "@tensorflow/tfjs";
 import { voice } from './voice';
 import { coco } from './model';
 import { camera, video } from './camera';
+import Traductor from './traductor';
 import {
   Navbar,
   Form,
@@ -67,13 +68,16 @@ class DetectTensorFlow extends React.Component {
       const y = prediction.bbox[1];
       const width = prediction.bbox[2];
       const height = prediction.bbox[3];
+      this.setState({prediction: prediction.class})
+      var lowerCase = this.state.object.toLowerCase();
+      var objectSpanish = Traductor(this.state.prediction);
       // Draw the bounding box.
       ctx.strokeStyle = "#2fff00";
       ctx.lineWidth = 1;
       ctx.strokeRect(x, y, width, height);
       // Draw the label background.
       ctx.fillStyle = "#2fff00";
-      const textWidth = ctx.measureText(prediction.class).width;
+      const textWidth = ctx.measureText(objectSpanish).width;
       const textHeight = parseInt(font, 10);
       // draw top left rectangle
       ctx.fillRect(x, y, textWidth + 10, textHeight + 10);
@@ -82,13 +86,12 @@ class DetectTensorFlow extends React.Component {
 
       // Draw the text last to ensure it's on top.
       ctx.fillStyle = "#000000";
-      ctx.fillText(prediction.class, x, y);
+      ctx.fillText(objectSpanish, x, y);
       ctx.fillText(prediction.score.toFixed(2), x, y + height - textHeight);
-      this.setState({prediction: prediction.class})
-      if(this.state.prediction.includes(this.state.object)){
+      if(objectSpanish.includes(lowerCase)){
         if(!speech.speaking()){
           speech.speak({
-            text: "El objeto es " + prediction.class,
+            text: "El objeto es " + objectSpanish,
           }).then(() => {
               console.log("Success !");
           }).catch(e => {
@@ -99,7 +102,7 @@ class DetectTensorFlow extends React.Component {
       else if(!this.state.object){
         if(!speech.speaking()){
           speech.speak({
-            text: "El objeto es " + prediction.class,
+            text: "El objeto es " + objectSpanish,
           }).then(() => {
               console.log("Success !");
           }).catch(e => {
