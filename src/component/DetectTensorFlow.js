@@ -1,15 +1,15 @@
 import React from "react";
 import "@tensorflow/tfjs";
-import { voice } from './voice';
-import { coco } from './model';
-import { camera, video } from './camera';
-import Traductor from './traductor';
+import Voice from '../models/Voice';
+import ModelTensorFlow from '../models/ModelTensorFlow';
+import Camara from '../models/Camara';
+import spanish from '../language/spanish';
 import {
   Navbar,
   Form,
   FormControl,
   Nav
-} from 'react-bootstrap'
+} from 'react-bootstrap';
 
 class DetectTensorFlow extends React.Component {
 
@@ -18,19 +18,21 @@ class DetectTensorFlow extends React.Component {
     this.inputRef = React.createRef();
     this.state = {
       object: '',
-      prediction: ''
+      prediction: '',
+      voz: null
     }
 
   }
-  videoRef = video();
+  videoRef = Camara.getInstance().getCam();
   canvasRef = React.createRef();  
   _input = HTMLInputElement;
 
   componentDidMount() {
+    this.setState({voz: Voice.getInstance()});
     this.focusInput();
     if (navigator.mediaDevices.getUserMedia) {      
-      const cam = camera();
-      const model = coco();
+      const cam = Camara.getInstance().abrirCamara();
+      const model = ModelTensorFlow.getInstance().cargarModelo();
       // Todas las promesas
       Promise.all([model, cam]).then(values => {
           this.detectFromVideoFrame(values[0], this.videoRef.current);
@@ -57,7 +59,6 @@ class DetectTensorFlow extends React.Component {
   };
 
   showDetections = predictions => {
-    const speech = voice();
     const ctx = this.canvasRef.current.getContext("2d");
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     const font = "24px helvetica";
@@ -70,7 +71,7 @@ class DetectTensorFlow extends React.Component {
       const height = prediction.bbox[3];
       this.setState({prediction: prediction.class})
       var lowerCase = this.state.object.toLowerCase();
-      var objectSpanish = Traductor(this.state.prediction);
+      var objectSpanish = spanish(this.state.prediction);
       // Draw the bounding box.
       ctx.strokeStyle = "#2fff00";
       ctx.lineWidth = 1;
@@ -88,27 +89,11 @@ class DetectTensorFlow extends React.Component {
       ctx.fillStyle = "#000000";
       ctx.fillText(objectSpanish, x, y);
       ctx.fillText(prediction.score.toFixed(2), x, y + height - textHeight);
-      if(objectSpanish.includes(lowerCase)){
-        if(!speech.speaking()){
-          speech.speak({
-            text: "El objeto es " + objectSpanish,
-          }).then(() => {
-              console.log("Success !");
-          }).catch(e => {
-              console.error("An error occurred :", e);
-          })
-        }
+      if(objectSpanish.includes(lowerCase)){        
+        this.state.voz.speak(objectSpanish)
       }
       else if(!this.state.object){
-        if(!speech.speaking()){
-          speech.speak({
-            text: "El objeto es " + objectSpanish,
-          }).then(() => {
-              console.log("Success !");
-          }).catch(e => {
-              console.error("An error occurred :", e);
-          })
-        }
+        this.state.voz.speak(objectSpanish)
       }
     });
   };

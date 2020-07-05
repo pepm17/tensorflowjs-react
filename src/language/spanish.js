@@ -1,4 +1,3 @@
-
 const Traductor = (palabra) => {
     switch(palabra){
         case 'person':{
